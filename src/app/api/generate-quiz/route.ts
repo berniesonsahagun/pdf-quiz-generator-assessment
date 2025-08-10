@@ -4,16 +4,18 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  try {
-    //upload file here
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Error in uploading file." },
-      { status: 500 }
-    );
-  }
+
   const { text } = body;
   const compressedPages = compressPage(text);
   const context = buildCompactContext(compressedPages);
-  console.log(context);
+
+  try {
+    const questions = await generateQuestions(context);
+    return NextResponse.json({ questions }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Error in generating questions." },
+      { status: 500 }
+    );
+  }
 }

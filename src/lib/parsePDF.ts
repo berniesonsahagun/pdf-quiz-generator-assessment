@@ -1,4 +1,4 @@
-const MAX_PAGES = 10;
+const MAX_PAGES = Number.parseInt(process.env.MAX_PAGES || "") || 10;
 
 export async function parsePDF(
   file: File

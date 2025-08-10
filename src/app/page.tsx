@@ -25,24 +25,35 @@ const sampleQuiz = [
 export default function Home() {
   const [questions, setQuestions] = useState<Questions | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [text, setText] = useState("");
 
   const handleGenerateQuiz = async () => {
-    if (!file) return;
-
-    const response = await parsePDF(file);
-    if (response.success) {
-      setText(response.context!);
+    if (!file) {
+      setError("Please upload a PDF file before generating a quiz");
+      return;
     }
 
-    const res = await fetch("http://localhost:3000/api/generate-quiz", {
-      method: "POST",
-    });
-    if (!res.ok) {
-      throw new Error(`Response status: ${res.status}`);
+    const response = await parsePDF(file);
+
+    if (!response.success) {
+      setError("Something went wrong with reading your PDF file");
+    } else {
+      setText(response.context || "");
+      const res = await fetch("/api/generate-quiz", {
+        method: "POST",
+        body: JSON.stringify({ text: text }),
+      });
+
+      //set proper handling and toast
+      if (!res.ok) {
+        throw new Error(`Response status: ${res.status}`);
+      }
     }
   };
 
+  //can probably move this later to a separate component
   if (!questions) {
     return (
       <section className="flex flex-col justify-center gap-20 w-full h-screen">
@@ -70,13 +81,15 @@ export default function Home() {
             <Button className="cursor-pointer" onClick={handleGenerateQuiz}>
               Generate Quiz
             </Button>
-            {text}
           </CardContent>
         </Card>
       </section>
     );
   }
 
+  //add a loading toast or animation
+
+  //can probably merge this to ternary expression with the component above
   return (
     <div className="py-20 space-y-4">
       <Quiz questions={questions} setQuestions={setQuestions} />

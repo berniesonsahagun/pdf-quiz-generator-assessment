@@ -1,13 +1,15 @@
+import { buildCompactContext, compressPage } from "@/lib/compress";
+
 export async function parsePDF(
   file: File
 ): Promise<{ success: boolean; message?: string; context?: string }> {
   const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
+
   const MAX_PAGES = parseInt(process.env.MAX_PDF_PAGES || "");
   GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await getDocument({ data: arrayBuffer }).promise;
 
-  // Checks if the PDF exceeds 10 pages and returns an error if it has.
   if (pdf.numPages > MAX_PAGES) {
     return {
       success: false,
